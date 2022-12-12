@@ -1,70 +1,28 @@
-# Getting Started with Create React App
+# XRPaLs
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+__Never remember account addresses again :)__
 
-## Available Scripts
 
-In the project directory, you can run:
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/o-N2nSStaZI/0.jpg)](https://www.youtube.com/watch?v=o-N2nSStaZI)
 
-### `npm start`
+_Click to watch video explanation_
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+***
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Inspiration
+This hackathon was a completely new experience for me. I was so excited to learn and build on a new blockchain XRPL. My main goal was to solve some really crucial problem existing in this technology and I found that payments to people can be done only if you remember their account address all the time which is practically not possible. It is not possible to even remember your own address :) And I was inspired to solve this problem
 
-### `npm test`
+## What it does
+My dApp is a platform where one can mint contacts as soul bound NFTs to themselves so that they don't have to remember each others account address every time they need to transfer money to them.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Challenges we ran into
+I tried experimenting with EVM sidechain and I could not integrate it since it was showing that the chainId was not available. I had a hard time using the xrpl npm package and finally ended up using the HTML script tag for XRP.
+## Accomplishments that we're proud of
+I am proud of completing a perfectly working prototype of my product
 
-### `npm run build`
+## What we learned
+I learned on how to build on XRP
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## What's next for XRPaLs
+* XRGoups!!!! Yes, not just adding contacts one will be able to create groups to which one can pay and share the splits equally or proportionately. The group metadata will be minted as an NFT which makes it easier to fetch
+* My main goal for this project is to switch this to XRP EVM so that one need not expose his seed phrase to log in his account
