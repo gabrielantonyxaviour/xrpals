@@ -13,8 +13,9 @@ function App() {
   const [id, setId] = useState(-1);
   const [address, setAddress] = useState("");
   const [balance, setBalance] = useState(0);
-  const [txSuccess, setTxSuccess] = useState(false);
+  const [txSuccess, setTxSuccess] = useState("");
   const [paySuccess, setPaySuccess] = useState(false);
+  const [alert, setAlert] = useState(false);
   const [newFriend, setnewFriend] = useState({
     id: "",
     name: "",
@@ -46,48 +47,46 @@ function App() {
   }
 
   async function FetchNFTs(address) {
-    await connectClient();
-
-    // const nfts = await client.request({
-    //   method: "account_nfts",
-    //   account: address,
-    // });
-    // console.log(
-    //   "All NFTS: " + JSON.stringify(nfts.result.account_nfts, null, 2)
-    // );
-    // nfts.result.account_nfts.forEach((nft, index) => {
-    //   axios
-    //     .request({
-    //       method: "GET",
-    //       url:
-    //         "https://cors-anywhere.herokuapp.com/https://infura-ipfs.io/ipfs/" +
-    //         xrpl.convertHexToString(nft.URI).slice(7),
-    //       headers: {
-    //         "Access-Control-Allow-Origin": "*",
-    //       },
-    //     })
-    //     .then((data) => {
-    //       console.log(data);
-    //     })
-    //     .catch((err) => {
-    //       console.log(err);
-    //     });
-    // });
-
-    setPals([
-      {
-        id: "1",
-        name: "Gabriel",
-        image: "Qmeg2DKmm2eWumc84XZMMcwqkULxfVF7bYa9yPNCXpSTL6",
-        accountAddress: "r495P4iLfdEa5KxTNBcQsNdZtJTFU8rmdX",
-      },
-      {
-        id: "2",
-        name: "Benita",
-        image: "Qmcrc18bG8aejHJxM1TGKV4QPuLfeMk48NGDNsYXxiVp4c",
-        accountAddress: "r9hqkM9tp5FKW5CE5BFb9EByBLd3XAHomh",
-      },
-    ]);
+    const SERVER_URL = "wss://s.altnet.rippletest.net:51233";
+    console.log("Connecting to " + SERVER_URL);
+    client = new xrpl.Client(SERVER_URL);
+    await client.connect();
+    console.log("Connected to XRPL TESTNET");
+    const nfts = await client.request({
+      method: "account_nfts",
+      account: address,
+    });
+    console.log(
+      "All NFTS: " + JSON.stringify(nfts.result.account_nfts, null, 2)
+    );
+    nfts.result.account_nfts.forEach((nft, index) => {
+      axios
+        .request({
+          method: "GET",
+          url:
+            "https://cors-anywhere.herokuapp.com/https://infura-ipfs.io/ipfs/" +
+            xrpl.convertHexToString(nft.URI).slice(7),
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
+        })
+        .then(({ data }) => {
+          if (data.custom_fields.key == "XRPaLs123") {
+            setPals([
+              ...pals,
+              {
+                id: (pals.length + 1).toString(),
+                name: data.name,
+                image: data.file_url,
+                account: data.custom_fields.accountAddress,
+              },
+            ]);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    });
   }
 
   function Login() {
@@ -144,10 +143,7 @@ function App() {
               if (res) {
                 setSeed(wallet.seed);
               } else {
-                var myModal = await window.bootstrap.Modal(
-                  document.getElementById("exampleModal")
-                );
-                myModal.show();
+                setAlert(true);
               }
             }}
           >
@@ -170,17 +166,14 @@ function App() {
               type="submit"
               className="d-flex btn btn-primary btn-block mb-4"
               style={{ margin: "auto" }}
-              // onClick={async () => {
-              //   if (client != null) {
-              //     await fetchWallet();
-              //   } else {
-              //     console.log("Client is null");
-              //   }
-
-              // }}
             >
               Log in
             </button>
+            {alert && (
+              <div class="alert alert-danger" role="alert">
+                Invalid account seed! Please try again!
+              </div>
+            )}
           </form>
         </div>
       </div>
@@ -224,6 +217,57 @@ function App() {
     const [image, setImage] = useState("");
     const [name, setName] = useState("");
     const [address, setAddress] = useState("");
+
+    async function uploadToIPFS() {
+      const form = new FormData();
+      form.append("file", image);
+      axios
+        .request({
+          method: "POST",
+          url: "https://api.nftport.xyz/v0/files",
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: process.env.NFTPORT_AUTHORIZATION,
+          },
+          data: form,
+        })
+        .then(function (response) {
+          return response.data.ipfs_url;
+        })
+        .catch(function (error) {
+          console.error(error);
+          return null;
+        });
+    }
+
+    async function uploadMetadataToIPFS(file_url) {
+      const options = {
+        method: "POST",
+        url: "https://api.nftport.xyz/v0/metadata",
+        headers: {
+          accept: "application/json",
+          "content-type": "application/json",
+          Authorization: process.env.NFTPORT_AUTHORIZATION,
+        },
+        data: {
+          custom_fields: { key: "XRPaLs123", accountAddress: address },
+          name: name,
+          description: "This is a XRPaL SoulBound NFToken",
+          file_url: file_url,
+        },
+      };
+
+      axios
+        .request(options)
+        .then(function ({ data }) {
+          return data.ipfs_url;
+        })
+        .catch(function (error) {
+          console.error(error);
+          return null;
+        });
+    }
+
     return (
       <div className="h-100 d-flex justify-content-center align-items-center ">
         <form className="p-5 bg-white rounded">
@@ -234,13 +278,27 @@ function App() {
             </h5>
           </div>
           <div className="form-outline mb-2">
-            <input type="text" id="address" className="form-control" />
+            <input
+              type="text"
+              id="address"
+              className="form-control"
+              onChange={(event) => {
+                setAddress(event.target.value);
+              }}
+            />
             <label className="form-label" htmlFor="form2Example1">
               Account Address
             </label>
           </div>
           <div className="form-outline mb-2">
-            <input type="text" id="name" className="form-control" />
+            <input
+              type="text"
+              id="name"
+              className="form-control"
+              onChange={(event) => {
+                setName(event.target.value);
+              }}
+            />
             <label className="form-label" htmlFor="form2Example1">
               XRPaL Name
             </label>
@@ -288,46 +346,62 @@ function App() {
               await connectClient();
               await fetchWallet(seed);
               setTxSuccess(true);
-              // const transactionBlob = {
-              //   TransactionType: "NFTokenMint",
-              //   account: address,
-              //   URI: xrpl.convertStringToHex(
-              //     "https://infura-ipfs.io/ipfs/QmPDkV71RzSSA2CsSeArBBJmQJSQHbavQ3W2umE46hwCNE"
-              //   ),
-              //   Flags: parseInt("1"),
-              //   TransferFee: parseInt("0"),
-              //   NFTokenTaxon: 0, //Required, but if you have no use for it, set to zero.
-              // };
-              // const tx = await client.submitAndWait(transactionBlob, {
-              //   wallet: wallet,
-              // });
-              // console.log(
-              //   "Transaction result: " + tx.result.meta.TransactionResult
-              // );
-              // if (tx.result.meta.TransactionResult === "tesSUCCESS")
-              //   console.log(
-              //     "Transaction Success\nTransaction Fee: " +
-              //       parseInt(tx.result.Fee) / 1000000 +
-              //       "XRP"
-              //   );
-              // console.log(tx.result);
 
-              setPals([
-                ...pals,
-                {
-                  id: pals.length + 1,
-                  name: "Cristiano",
-                  image: "QmPDkV71RzSSA2CsSeArBBJmQJSQHbavQ3W2umE46hwCNE",
-                  accountAddress: "rKa4KutFxiZ6bZRWZR9iRiU3vZcu9Ya3KB",
-                },
-              ]);
+              const imageURL = await uploadToIPFS(image);
+              if (imageURL != null) {
+                setPals([
+                  ...pals,
+                  {
+                    id: pals.length + 1,
+                    name: name,
+                    image: imageURL,
+                    accountAddress: address,
+                  },
+                ]);
+
+                const metadata_URI = await uploadMetadataToIPFS(imageURL);
+                if (metadata_URI == null) return;
+                const SERVER_URL = "wss://s.altnet.rippletest.net:51233";
+                console.log("Connecting to " + SERVER_URL);
+                client = new xrpl.Client(SERVER_URL);
+                await client.connect();
+                console.log("Connected to XRPL TESTNET");
+                wallet = xrpl.Wallet.fromSeed(seed);
+
+                const transactionBlob = {
+                  TransactionType: "NFTokenMint",
+                  account: address,
+                  URI: xrpl.convertStringToHex(metadata_URI),
+                  Flags: parseInt("1"),
+                  TransferFee: parseInt("0"),
+                  NFTokenTaxon: 0, //Required, but if you have no use for it, set to zero.
+                };
+                const tx = await client.submitAndWait(transactionBlob, {
+                  wallet: wallet,
+                });
+                console.log(
+                  "Transaction result: " + tx.result.meta.TransactionResult
+                );
+                if (tx.result.meta.TransactionResult === "tesSUCCESS")
+                  console.log(
+                    "Transaction Success\nTransaction Fee: " +
+                      parseInt(tx.result.Fee) / 1000000 +
+                      "XRP"
+                  );
+                console.log(tx.result);
+                setTxSuccess(
+                  "Transaction Success\nTransaction Fee: " +
+                    parseInt(tx.result.Fee) / 1000000 +
+                    "XRP"
+                );
+              }
             }}
           >
             Mint XrPal NFT
           </button>
-          {txSuccess && (
+          {txSuccess !== "" && (
             <div className="alert alert-success" role="alert">
-              New Account Created
+              {txSuccess}
             </div>
           )}
         </form>
@@ -398,7 +472,14 @@ function App() {
           </div>
 
           <div className=" form-outline mb-2">
-            <input type="number" id="xrpal-address" className="form-control" />
+            <input
+              type="number"
+              id="amount"
+              className="form-control"
+              onChange={(event) => {
+                setAmount(event.target.value);
+              }}
+            />
             <label
               className="form-label d-flex justify-content-center m-2"
               htmlFor="form2Example1"
@@ -412,36 +493,47 @@ function App() {
             className="d-flex btn btn-primary btn-block mb-4 mt-4"
             style={{ margin: "auto" }}
             onClick={async () => {
-              // const SERVER_URL = "wss://s.altnet.rippletest.net:51233";
-              // console.log("Connecting to " + SERVER_URL);
-              // client = new xrpl.Client(SERVER_URL);
-              // await client.connect();
-              // wallet = xrpl.Wallet.fromSeed(seed);
-              // const prepared = await client.autofill({
-              //   TransactionType: "Payment",
-              //   Account: wallet.classicAddress,
-              //   Amount: xrpl.xrpToDrops(3),
-              //   Destination: pals[id - 1].address,
-              // });
-              // console.log(wallet);
-              // // ------------------------------------------------ Sign prepared instructions
-              // const signed = wallet.sign(prepared);
+              const SERVER_URL = "wss://s.altnet.rippletest.net:51233";
+              console.log("Connecting to " + SERVER_URL);
+              client = new xrpl.Client(SERVER_URL);
+              await client.connect();
+              wallet = xrpl.Wallet.fromSeed(seed);
+              const prepared = await client.autofill({
+                TransactionType: "Payment",
+                Account: wallet.classicAddress,
+                Amount: xrpl.xrpToDrops(3),
+                Destination: pals[id - 1].address,
+              });
+              console.log(wallet);
+              // ------------------------------------------------ Sign prepared instructions
+              const signed = wallet.sign(prepared);
 
-              // // -------------------------------------------------------- Submit signed blob
-              // const tx = await client.submitAndWait(signed.tx_blob);
-              await connectClient();
-              await fetchWallet(seed);
-
-              setBalance(balance - 2.000012);
-              setPaySuccess(true);
+              // -------------------------------------------------------- Submit signed blob
+              const tx = await client.submitAndWait(signed.tx_blob);
+              if (tx.result.meta.TransactionResult === "tesSUCCESS") {
+                setBalance(balance - parseInt(tx.result.Fee) - amount);
+                setPaySuccess(
+                  "Transaction Successful!\nGas Fee: " +
+                    (parseInt(tx.result.Fee) / 1000000).toString() +
+                    " XRP"
+                );
+              } else {
+                setPaySuccess("Failed! Transaction did not go through!");
+              }
             }}
           >
             Send XRP
           </button>
-          {paySuccess && (
-            <div className="alert alert-success" role="alert">
-              {"Transaction Successful!\nGas Fee: 000012 XRP"}
+          {paySuccess.slice(0, 1) == "F" ? (
+            <div className="alert alert-danger" role="alert">
+              {paySuccess}
             </div>
+          ) : (
+            paySuccess != "" ?? (
+              <div className="alert alert-success" role="alert">
+                {paySuccess}
+              </div>
+            )
           )}
         </form>
       </div>
