@@ -3,7 +3,7 @@
 __Never remember account addresses again :)__
 
 
-[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/o-N2nSStaZI/0.jpg)](https://www.youtube.com/watch?v=o-N2nSStaZI)
+[![IMAGE ALT TEXT HERE](https://raw.githubusercontent.com/gabrielantonyxaviour/xrpals/master/src/assets/logo.png)](https://www.youtube.com/watch?v=o-N2nSStaZI)
 
 _Click to watch video explanation_
 
